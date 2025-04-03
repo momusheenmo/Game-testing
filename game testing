@@ -1,0 +1,36 @@
+   import { useState } from "react";
+
+   function App() {
+     const [gameState, setGameState] = useState("start");
+
+     return (
+       <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+         {gameState === "start" && (
+           <div className="text-center">
+             <h1 className="text-4xl font-bold">Welcome to the Game</h1>
+             <button onClick={() => setGameState("playing")} className="mt-4 px-6 py-2 bg-blue-600 rounded-lg hover:bg-blue-700">
+               Start Game
+             </button>
+           </div>
+         )}
+         {gameState === "playing" && (
+           <div className="w-3/4 h-3/4 bg-gray-700 flex items-center justify-center">
+             <h2 className="text-3xl">Game is Running...</h2>
+             <button onClick={() => setGameState("end")} className="absolute bottom-10 px-6 py-2 bg-red-600 rounded-lg hover:bg-red-700">
+               End Game
+             </button>
+           </div>
+         )}
+         {gameState === "end" && (
+           <div className="text-center">
+             <h1 className="text-4xl font-bold">Game Over</h1>
+             <button onClick={() => setGameState("start")} className="mt-4 px-6 py-2 bg-green-600 rounded-lg hover:bg-green-700">
+               Restart
+             </button>
+           </div>
+         )}
+       </div>
+     );
+   }
+
+   export default App;
