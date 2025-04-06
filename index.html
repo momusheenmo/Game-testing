@@ -8,6 +8,7 @@
     body {
       background: #111;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -19,14 +20,23 @@
       background: #222;
       border: 2px solid #0f0;
     }
+
+    #message {
+      margin-top: 20px;
+      font-size: 24px;
+      color: yellow;
+      height: 30px;
+    }
   </style>
 </head>
 <body>
   <canvas id="game" width="400" height="400"></canvas>
+  <div id="message"></div>
 
   <script>
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
+    const message = document.getElementById('message');
 
     const grid = 20;
     let count = 0;
@@ -35,6 +45,13 @@
 
     function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    function showMessage(text, duration = 1000) {
+      message.textContent = text;
+      setTimeout(() => {
+        message.textContent = '';
+      }, duration);
     }
 
     function loop() {
@@ -65,14 +82,18 @@
       snake.cells.forEach((cell, index) => {
         ctx.fillRect(cell.x, cell.y, grid - 1, grid - 1);
 
+        // Eat apple
         if (cell.x === apple.x && cell.y === apple.y) {
           snake.maxCells++;
           apple.x = getRandomInt(0, 20) * grid;
           apple.y = getRandomInt(0, 20) * grid;
+          showMessage("Good job Jibran!", 1000);
         }
 
+        // Self collision
         for (let i = index + 1; i < snake.cells.length; i++) {
           if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+            showMessage("Jibran died!", 1500);
             snake.x = 160;
             snake.y = 160;
             snake.cells = [];
