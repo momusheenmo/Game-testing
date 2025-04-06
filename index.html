@@ -36,6 +36,7 @@
       flex-direction: column;
       gap: 10px;
       align-items: center;
+      user-select: none;
     }
 
     .row {
@@ -68,12 +69,12 @@
 
   <div class="controls">
     <div class="row">
-      <button class="btn" onclick="changeDirection('up')">⬆️</button>
+      <button class="btn" data-dir="up">⬆️</button>
     </div>
     <div class="row">
-      <button class="btn" onclick="changeDirection('left')">⬅️</button>
-      <button class="btn" onclick="changeDirection('down')">⬇️</button>
-      <button class="btn" onclick="changeDirection('right')">➡️</button>
+      <button class="btn" data-dir="left">⬅️</button>
+      <button class="btn" data-dir="down">⬇️</button>
+      <button class="btn" data-dir="right">➡️</button>
     </div>
   </div>
 
@@ -84,6 +85,7 @@
 
     const grid = 20;
     let count = 0;
+    let speed = 5.3; // slower snake (was 4 before)
     let snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
     let apple = { x: 320, y: 320 };
 
@@ -112,7 +114,7 @@
 
     function loop() {
       requestAnimationFrame(loop);
-      if (++count < 4) return;
+      if (++count < speed) return;
 
       count = 0;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -162,24 +164,7 @@
       });
     }
 
-    // Keyboard Controls
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft' && snake.dx === 0) {
-        snake.dx = -grid;
-        snake.dy = 0;
-      } else if (e.key === 'ArrowUp' && snake.dy === 0) {
-        snake.dy = -grid;
-        snake.dx = 0;
-      } else if (e.key === 'ArrowRight' && snake.dx === 0) {
-        snake.dx = grid;
-        snake.dy = 0;
-      } else if (e.key === 'ArrowDown' && snake.dy === 0) {
-        snake.dy = grid;
-        snake.dx = 0;
-      }
-    });
-
-    // Touch/Mobile Button Controls
+    // Direction control function
     function changeDirection(dir) {
       if (dir === 'left' && snake.dx === 0) {
         snake.dx = -grid;
@@ -196,7 +181,29 @@
       }
     }
 
+    // Keyboard controls
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') changeDirection('left');
+      else if (e.key === 'ArrowUp') changeDirection('up');
+      else if (e.key === 'ArrowRight') changeDirection('right');
+      else if (e.key === 'ArrowDown') changeDirection('down');
+    });
+
+    // Touch / mouse button controls
+    document.querySelectorAll('.btn').forEach(btn => {
+      const dir = btn.getAttribute('data-dir');
+      btn.addEventListener('touchstart', e => {
+        e.preventDefault();
+        changeDirection(dir);
+      });
+      btn.addEventListener('mousedown', e => {
+        e.preventDefault();
+        changeDirection(dir);
+      });
+    });
+
     requestAnimationFrame(loop);
   </script>
 </body>
 </html>
+
