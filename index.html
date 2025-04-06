@@ -14,11 +14,13 @@
       height: 100vh;
       color: white;
       font-family: sans-serif;
+      margin: 0;
     }
 
     canvas {
       background: #222;
       border: 2px solid #0f0;
+      touch-action: none;
     }
 
     #message {
@@ -27,11 +29,53 @@
       color: yellow;
       height: 30px;
     }
+
+    .controls {
+      display: none;
+      margin-top: 20px;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .row {
+      display: flex;
+      gap: 20px;
+    }
+
+    .btn {
+      background-color: #0f0;
+      border: none;
+      padding: 15px 20px;
+      font-size: 18px;
+      border-radius: 10px;
+      color: black;
+      font-weight: bold;
+      width: 60px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .controls {
+        display: flex;
+      }
+    }
   </style>
 </head>
 <body>
   <canvas id="game" width="400" height="400"></canvas>
   <div id="message"></div>
+
+  <div class="controls">
+    <div class="row">
+      <button class="btn" onclick="changeDirection('up')">⬆️</button>
+    </div>
+    <div class="row">
+      <button class="btn" onclick="changeDirection('left')">⬅️</button>
+      <button class="btn" onclick="changeDirection('down')">⬇️</button>
+      <button class="btn" onclick="changeDirection('right')">➡️</button>
+    </div>
+  </div>
 
   <script>
     const canvas = document.getElementById('game');
@@ -76,7 +120,7 @@
       snake.x += snake.dx;
       snake.y += snake.dy;
 
-      // WALL COLLISION
+      // Wall collision
       if (
         snake.x < 0 ||
         snake.x >= canvas.width ||
@@ -118,6 +162,7 @@
       });
     }
 
+    // Keyboard Controls
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowLeft' && snake.dx === 0) {
         snake.dx = -grid;
@@ -133,6 +178,23 @@
         snake.dx = 0;
       }
     });
+
+    // Touch/Mobile Button Controls
+    function changeDirection(dir) {
+      if (dir === 'left' && snake.dx === 0) {
+        snake.dx = -grid;
+        snake.dy = 0;
+      } else if (dir === 'up' && snake.dy === 0) {
+        snake.dy = -grid;
+        snake.dx = 0;
+      } else if (dir === 'right' && snake.dx === 0) {
+        snake.dx = grid;
+        snake.dy = 0;
+      } else if (dir === 'down' && snake.dy === 0) {
+        snake.dy = grid;
+        snake.dx = 0;
+      }
+    }
 
     requestAnimationFrame(loop);
   </script>
