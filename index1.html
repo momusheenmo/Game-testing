@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grave Defender: Sunni Barelvi</title>
+  <style>
+    body {
+      background: #f0f0f0;
+      color: #333;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    canvas {
+      background: #e0e0e0;
+      border: 2px solid #0a0a0a;
+      display: block;
+      margin: 0 auto;
+    }
+
+    #message {
+      font-size: 24px;
+      margin-top: 20px;
+      color: #ff6347;
+    }
+
+    #score {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Grave Defender: Sunni Barelvi</h1>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <div id="score">Graves Protected: 0</div>
+  <div id="message"></div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const message = document.getElementById('message');
+    const scoreDisplay = document.getElementById('score');
+    let score = 0;
+    let gameOver = false;
+
+    const grid = 20;
+    const player = { x: 300, y: 350, width: grid, height: grid, dx: 0, dy: 0, speed: 5 };
+    const graves = [{ x: 250, y: 100 }, { x: 350, y: 100 }];
+    const enemies = [];
+
+    function spawnEnemy() {
+      const side = Math.random() > 0.5 ? 'left' : 'right';
+      const x = side === 'left' ? -grid : canvas.width;
+      const y = Math.random() * (canvas.height / 2);
+      enemies.push({ x: x, y: y, width: grid, height: grid, dx: side === 'left' ? grid : -grid, type: side === 'left' ? 'Wahhabi' : 'Deobandi' });
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = '#0077cc'; // Barelvi color
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawGraves() {
+      ctx.fillStyle = '#8B4513'; // Grave brown
+      graves.forEach(grave => {
+        ctx.fillRect(grave.x, grave.y, grid * 2, grid);
+      });
+    }
+
+    function drawEnemies() {
+      enemies.forEach(enemy => {
+        ctx.fillStyle = enemy.type === 'Wahhabi' ? '#ff0000' : '#32cd32';
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+      });
+    }
+
+    function movePlayer() {
+      player.x += player.dx;
+      player.y += player.dy;
+    }
+
+    function moveEnemies() {
+      enemies.forEach(enemy => {
+        enemy.x += enemy.dx;
+        if (enemy.type === 'Wahhabi' && enemy.x <= graves[0].x + grid * 2 && enemy.x >= graves[0].x) {
+          gameOver = true;
+          showMessage("Wahhabi! Not on my watch! Graves are sacred!");
+        } else if (enemy.type === 'Deobandi' && enemy.x >= graves[1].x - grid) {
+          gameOver = true;
+          showMessage("Deobandi! You can't destroy these graves!");
+        }
+      });
+    }
+
+    function showMessage(text) {
+      message.textContent = text;
+      setTimeout(() => { message.textContent = ''; }, 2000);
+    }
+
+    function detectCollisions() {
+      enemies.forEach(enemy => {
+        if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x && enemy.y < player.y + player.height && enemy.y + enemy.height > player.y) {
+          showMessage("Righteous! You stopped them!");
+          enemies.splice(enemies.indexOf(enemy), 1);
+          score++;
+          updateScore();
+        }
+      });
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = `Graves Protected: ${score}`;
+    }
+
+    function gameLoop() {
+      if (gameOver) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      movePlayer();
+      moveEnemies();
+      detectCollisions();
+
+      drawGraves();
+      drawPlayer();
+      drawEnemies();
+      
+      requestAnimationFrame(gameLoop);
+    }
+
+    function handleKeydown(e) {
+      if (e.key === 'ArrowUp') player.dy = -player.speed;
+      if (e.key === 'ArrowDown') player.dy = player.speed;
+      if (e.key === 'ArrowLeft') player.dx = -player.speed;
+      if (e.key === 'ArrowRight') player.dx = player.speed;
+    }
+
+    function handleKeyup(e) {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') player.dy = 0;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
+    }
+
+    document.addEventListener('keydown', handleKeydown);
+    document.addEventListener('keyup', handleKeyup);
+
+    setInterval(() => {
+      if (!gameOver) spawnEnemy();
+    }, 2000);
+
+    gameLoop();
+  </script>
+</body>
+</html>
