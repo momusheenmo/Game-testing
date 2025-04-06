@@ -60,6 +60,21 @@
       background-color: #228b22;
     }
 
+    /* Health Bar */
+    .health-bar {
+      width: 100px;
+      height: 10px;
+      background: #ddd;
+      margin-top: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .health {
+      height: 100%;
+      background: #32cd32;
+    }
+
     /* Mobile Button Controls */
     .button-container {
       position: absolute;
@@ -68,7 +83,7 @@
       transform: translateX(-50%);
       display: flex;
       justify-content: space-between;
-      width: 200px;
+      width: 220px;
     }
 
     .control-btn {
@@ -80,6 +95,10 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+    }
+
+    .attack-btn {
+      background-color: #ff6347;
     }
   </style>
 </head>
@@ -93,6 +112,12 @@
   <div id="gameUI" class="ui-elements">
     <button id="startBtn" class="start-button">Start Game</button>
     <button id="retryBtn" class="retry-button" style="display:none;">Retry</button>
+    <div class="health-bar">
+      <div id="playerHealth" class="health" style="width: 100%"></div>
+    </div>
+    <div class="health-bar">
+      <div id="enemyHealth" class="health" style="width: 100%"></div>
+    </div>
   </div>
 
   <!-- Mobile Controls -->
@@ -101,6 +126,7 @@
     <button class="control-btn" id="leftBtn">←</button>
     <button class="control-btn" id="rightBtn">→</button>
     <button class="control-btn" id="downBtn">↓</button>
+    <button class="control-btn attack-btn" id="attackBtn">Attack</button>
   </div>
 
   <script>
@@ -108,6 +134,8 @@
     const ctx = canvas.getContext('2d');
     const message = document.getElementById('message');
     const scoreDisplay = document.getElementById('score');
+    const playerHealthBar = document.getElementById('playerHealth');
+    const enemyHealthBar = document.getElementById('enemyHealth');
     const gameUI = document.getElementById('gameUI');
     const startBtn = document.getElementById('startBtn');
     const retryBtn = document.getElementById('retryBtn');
@@ -115,12 +143,13 @@
     let score = 0;
     let gameOver = false;
     let gameStarted = false;
+    let enemySpawnInterval;
 
     const grid = 20;
-    const player = { x: 300, y: 350, width: grid, height: grid, dx: 0, dy: 0, speed: 5, sword: false };
-    const graves = [{ x: 250, y: 100 }, { x: 350, y: 100 }];
+    const player = { x: 300, y: 350, width: grid, height: grid * 2, dx: 0, dy: 0, speed: 3, sword: false, health: 100 };
+    const graves = [{ x: 250, y: 100 }];
     const enemies = [];
-    let enemySpawnInterval;
+    let enemyHealth = 100;
 
     function startGame() {
       gameStarted = true;
@@ -128,46 +157,44 @@
       score = 0;
       player.x = 300;
       player.y = 350;
+      player.health = 100;
       enemies.length = 0;
       scoreDisplay.textContent = `Graves Protected: ${score}`;
+      playerHealthBar.style.width = '100%';
+      enemyHealthBar.style.width = '100%';
       startBtn.style.display = 'none';
       retryBtn.style.display = 'none';
       gameLoop();
-      enemySpawnInterval = setInterval(spawnEnemy, 2000); // Spawn enemies every 2 seconds
+      enemySpawnInterval = setInterval(spawnEnemy, 4000); // Spawn enemies every 4 seconds
     }
 
     function spawnEnemy() {
-      const side = Math.random() > 0.5 ? 'left' : 'right';
-      const x = side === 'left' ? -grid : canvas.width;
+      const x = canvas.width + grid;
       const y = Math.random() * (canvas.height / 2);
-      enemies.push({ x: x, y: y, width: grid, height: grid, dx: side === 'left' ? grid : -grid, type: side === 'left' ? 'Wahhabi' : 'Deobandi' });
+      enemies.push({ x: x, y: y, width: grid, height: grid * 2, dx: -2, sword: true, health: 50 });
     }
 
     function drawPlayer() {
       ctx.fillStyle = '#008000'; // Green for Barelvi character
       ctx.fillRect(player.x, player.y, player.width, player.height);
-
-      if (player.sword) {
-        ctx.beginPath();
-        ctx.moveTo(player.x + player.width / 2, player.y);
-        ctx.lineTo(player.x + player.width / 2, player.y - 30); // Sword above player
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 4;
-        ctx.stroke();
-      }
-    }
-
-    function drawGraves() {
-      ctx.fillStyle = '#8B4513'; // Grave brown
-      graves.forEach(grave => {
-        ctx.fillRect(grave.x, grave.y, grid * 2, grid);
-      });
+      ctx.beginPath();
+      ctx.moveTo(player.x + player.width / 2, player.y + player.height);
+      ctx.lineTo(player.x + player.width / 2, player.y + player.height + 30); // Sword below player
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 4;
+      ctx.stroke();
     }
 
     function drawEnemies() {
       enemies.forEach(enemy => {
-        ctx.fillStyle = enemy.type === 'Wahhabi' ? '#ff0000' : '#32cd32';
+        ctx.fillStyle = '#ff0000'; // Red for enemies
         ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        ctx.beginPath();
+        ctx.moveTo(enemy.x + enemy.width / 2, enemy.y + enemy.height);
+        ctx.lineTo(enemy.x + enemy.width / 2, enemy.y + enemy.height + 30); // Sword below enemy
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 4;
+        ctx.stroke();
       });
     }
 
@@ -179,12 +206,34 @@
     function moveEnemies() {
       enemies.forEach(enemy => {
         enemy.x += enemy.dx;
-        if (enemy.x <= graves[0].x + grid * 2 && enemy.x >= graves[0].x && !gameOver) {
-          gameOver = true;
-          showMessage("Wahhabi! Not on my watch! Graves are sacred!");
-        } else if (enemy.x >= graves[1].x - grid && !gameOver) {
-          gameOver = true;
-          showMessage("Deobandi! You can't destroy these graves!");
+        if (enemy.x <= player.x + player.width && !gameOver) {
+          attackEnemy(enemy);
+        }
+      });
+    }
+
+    function attackEnemy(enemy) {
+      if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x) {
+        enemy.health -= 10;
+        if (enemy.health <= 0) {
+          enemies.splice(enemies.indexOf(enemy), 1);
+          score++;
+          updateScore();
+        }
+        enemyHealth = enemy.health;
+        enemyHealthBar.style.width = `${enemyHealth}%`;
+      }
+    }
+
+    function detectCollisions() {
+      enemies.forEach(enemy => {
+        if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x && enemy.y < player.y + player.height && enemy.y + enemy.height > player.y) {
+          player.health -= 10;
+          playerHealthBar.style.width = `${player.health}%`;
+          if (player.health <= 0) {
+            gameOver = true;
+            showMessage("Game Over! You couldn't protect the grave!");
+          }
         }
       });
     }
@@ -192,17 +241,6 @@
     function showMessage(text) {
       message.textContent = text;
       setTimeout(() => { message.textContent = ''; }, 2000);
-    }
-
-    function detectCollisions() {
-      enemies.forEach(enemy => {
-        if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x && enemy.y < player.y + player.height && enemy.y + enemy.height > player.y) {
-          showMessage("Righteous! You stopped them!");
-          enemies.splice(enemies.indexOf(enemy), 1);
-          score++;
-          updateScore();
-        }
-      });
     }
 
     function updateScore() {
@@ -227,24 +265,6 @@
       requestAnimationFrame(gameLoop);
     }
 
-    function handleKeydown(e) {
-      if (e.key === 'ArrowUp') player.dy = -player.speed;
-      if (e.key === 'ArrowDown') player.dy = player.speed;
-      if (e.key === 'ArrowLeft') player.dx = -player.speed;
-      if (e.key === 'ArrowRight') player.dx = player.speed;
-    }
-
-    function handleKeyup(e) {
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') player.dy = 0;
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
-    }
-
-    // Mobile controls
-    document.getElementById('upBtn').addEventListener('click', () => { player.dy = -player.speed; });
-    document.getElementById('downBtn').addEventListener('click', () => { player.dy = player.speed; });
-    document.getElementById('leftBtn').addEventListener('click', () => { player.dx = -player.speed; });
-    document.getElementById('rightBtn').addEventListener('click', () => { player.dx = player.speed; });
-
     function endGame() {
       clearInterval(enemySpawnInterval);
       message.textContent = 'Game Over!';
@@ -254,8 +274,29 @@
     retryBtn.addEventListener('click', startGame);
     startBtn.addEventListener('click', startGame);
 
-    document.addEventListener('keydown', handleKeydown);
-    document.addEventListener('keyup', handleKeyup);
+    // Key Controls
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp') player.dy = -player.speed;
+      if (e.key === 'ArrowDown') player.dy = player.speed;
+      if (e.key === 'ArrowLeft') player.dx = -player.speed;
+      if (e.key === 'ArrowRight') player.dx = player.speed;
+    });
+
+    document.addEventListener('keyup', e => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') player.dy = 0;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
+    });
+
+    // Mobile controls
+    document.getElementById('upBtn').addEventListener('click', () => { player.dy = -player.speed; });
+    document.getElementById('downBtn').addEventListener('click', () => { player.dy = player.speed; });
+    document.getElementById('leftBtn').addEventListener('click', () => { player.dx = -player.speed; });
+    document.getElementById('rightBtn').addEventListener('click', () => { player.dx = player.speed; });
+    
+    // Attack Button
+    document.getElementById('attackBtn').addEventListener('click', () => {
+      enemies.forEach(enemy => attackEnemy(enemy));
+    });
 
   </script>
 </body>
