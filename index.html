@@ -54,6 +54,18 @@
       }, duration);
     }
 
+    function resetGame() {
+      showMessage("Jibran died!", 1500);
+      snake.x = 160;
+      snake.y = 160;
+      snake.dx = grid;
+      snake.dy = 0;
+      snake.cells = [];
+      snake.maxCells = 4;
+      apple.x = getRandomInt(0, 20) * grid;
+      apple.y = getRandomInt(0, 20) * grid;
+    }
+
     function loop() {
       requestAnimationFrame(loop);
       if (++count < 4) return;
@@ -64,10 +76,16 @@
       snake.x += snake.dx;
       snake.y += snake.dy;
 
-      if (snake.x < 0) snake.x = canvas.width - grid;
-      if (snake.x >= canvas.width) snake.x = 0;
-      if (snake.y < 0) snake.y = canvas.height - grid;
-      if (snake.y >= canvas.height) snake.y = 0;
+      // WALL COLLISION
+      if (
+        snake.x < 0 ||
+        snake.x >= canvas.width ||
+        snake.y < 0 ||
+        snake.y >= canvas.height
+      ) {
+        resetGame();
+        return;
+      }
 
       snake.cells.unshift({ x: snake.x, y: snake.y });
 
@@ -93,15 +111,8 @@
         // Self collision
         for (let i = index + 1; i < snake.cells.length; i++) {
           if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
-            showMessage("Jibran died!", 1500);
-            snake.x = 160;
-            snake.y = 160;
-            snake.cells = [];
-            snake.maxCells = 4;
-            snake.dx = grid;
-            snake.dy = 0;
-            apple.x = getRandomInt(0, 20) * grid;
-            apple.y = getRandomInt(0, 20) * grid;
+            resetGame();
+            return;
           }
         }
       });
