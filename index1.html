@@ -8,9 +8,10 @@
     body {
       background: #f0f0f0;
       color: #333;
-      font-family: sans-serif;
+      font-family: 'Arial', sans-serif;
       text-align: center;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
     }
 
     canvas {
@@ -24,32 +25,116 @@
       font-size: 24px;
       margin-top: 20px;
       color: #ff6347;
+      font-weight: bold;
     }
 
     #score {
-      font-size: 20px;
+      font-size: 24px;
       margin-top: 10px;
+      color: #008000;
+    }
+
+    /* UI Elements */
+    .ui-elements {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 18px;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .start-button, .retry-button {
+      background-color: #32cd32;
+      padding: 12px 24px;
+      font-size: 20px;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .start-button:hover, .retry-button:hover {
+      background-color: #228b22;
+    }
+
+    /* Mobile Button Controls */
+    .button-container {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: space-between;
+      width: 200px;
+    }
+
+    .control-btn {
+      font-size: 24px;
+      padding: 12px;
+      margin: 5px;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <h1>Grave Defender: Sunni Barelvi</h1>
   <canvas id="gameCanvas" width="600" height="400"></canvas>
+  
   <div id="score">Graves Protected: 0</div>
   <div id="message"></div>
+
+  <div id="gameUI" class="ui-elements">
+    <button id="startBtn" class="start-button">Start Game</button>
+    <button id="retryBtn" class="retry-button" style="display:none;">Retry</button>
+  </div>
+
+  <!-- Mobile Controls -->
+  <div class="button-container">
+    <button class="control-btn" id="upBtn">↑</button>
+    <button class="control-btn" id="leftBtn">←</button>
+    <button class="control-btn" id="rightBtn">→</button>
+    <button class="control-btn" id="downBtn">↓</button>
+  </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const message = document.getElementById('message');
     const scoreDisplay = document.getElementById('score');
+    const gameUI = document.getElementById('gameUI');
+    const startBtn = document.getElementById('startBtn');
+    const retryBtn = document.getElementById('retryBtn');
+
     let score = 0;
     let gameOver = false;
+    let gameStarted = false;
 
     const grid = 20;
-    const player = { x: 300, y: 350, width: grid, height: grid, dx: 0, dy: 0, speed: 5 };
+    const player = { x: 300, y: 350, width: grid, height: grid, dx: 0, dy: 0, speed: 5, sword: false };
     const graves = [{ x: 250, y: 100 }, { x: 350, y: 100 }];
     const enemies = [];
+    let enemySpawnInterval;
+
+    function startGame() {
+      gameStarted = true;
+      gameOver = false;
+      score = 0;
+      player.x = 300;
+      player.y = 350;
+      enemies.length = 0;
+      scoreDisplay.textContent = `Graves Protected: ${score}`;
+      startBtn.style.display = 'none';
+      retryBtn.style.display = 'none';
+      gameLoop();
+      enemySpawnInterval = setInterval(spawnEnemy, 2000); // Spawn enemies every 2 seconds
+    }
 
     function spawnEnemy() {
       const side = Math.random() > 0.5 ? 'left' : 'right';
@@ -59,8 +144,17 @@
     }
 
     function drawPlayer() {
-      ctx.fillStyle = '#0077cc'; // Barelvi color
+      ctx.fillStyle = '#008000'; // Green for Barelvi character
       ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      if (player.sword) {
+        ctx.beginPath();
+        ctx.moveTo(player.x + player.width / 2, player.y);
+        ctx.lineTo(player.x + player.width / 2, player.y - 30); // Sword above player
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+      }
     }
 
     function drawGraves() {
@@ -85,10 +179,10 @@
     function moveEnemies() {
       enemies.forEach(enemy => {
         enemy.x += enemy.dx;
-        if (enemy.type === 'Wahhabi' && enemy.x <= graves[0].x + grid * 2 && enemy.x >= graves[0].x) {
+        if (enemy.x <= graves[0].x + grid * 2 && enemy.x >= graves[0].x && !gameOver) {
           gameOver = true;
           showMessage("Wahhabi! Not on my watch! Graves are sacred!");
-        } else if (enemy.type === 'Deobandi' && enemy.x >= graves[1].x - grid) {
+        } else if (enemy.x >= graves[1].x - grid && !gameOver) {
           gameOver = true;
           showMessage("Deobandi! You can't destroy these graves!");
         }
@@ -116,7 +210,10 @@
     }
 
     function gameLoop() {
-      if (gameOver) return;
+      if (gameOver) {
+        endGame();
+        return;
+      }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       movePlayer();
@@ -142,14 +239,24 @@
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
     }
 
+    // Mobile controls
+    document.getElementById('upBtn').addEventListener('click', () => { player.dy = -player.speed; });
+    document.getElementById('downBtn').addEventListener('click', () => { player.dy = player.speed; });
+    document.getElementById('leftBtn').addEventListener('click', () => { player.dx = -player.speed; });
+    document.getElementById('rightBtn').addEventListener('click', () => { player.dx = player.speed; });
+
+    function endGame() {
+      clearInterval(enemySpawnInterval);
+      message.textContent = 'Game Over!';
+      retryBtn.style.display = 'inline-block';
+    }
+
+    retryBtn.addEventListener('click', startGame);
+    startBtn.addEventListener('click', startGame);
+
     document.addEventListener('keydown', handleKeydown);
     document.addEventListener('keyup', handleKeyup);
 
-    setInterval(() => {
-      if (!gameOver) spawnEnemy();
-    }, 2000);
-
-    gameLoop();
   </script>
 </body>
 </html>
