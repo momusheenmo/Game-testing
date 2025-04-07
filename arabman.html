@@ -25,10 +25,11 @@
 
     #muslimCharacter {
       position: absolute;
-      width: 30px;
-      height: 30px;
-      background-color: #FFD700; /* Example color, change to your character's image */
-      border-radius: 50%;
+      width: 40px;  /* Adjust the size as needed */
+      height: 60px; /* Adjust the size as needed */
+      background-image: url('arab_man.png'); /* Use the Arab man image */
+      background-size: cover;
+      background-position: center;
     }
 
     #scoreBoard {
@@ -41,10 +42,11 @@
 
     .bomb {
       position: absolute;
-      width: 20px;
-      height: 20px;
-      background-color: red;
-      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      background-image: url('bomb.png'); /* Use the bomb image */
+      background-size: cover;
+      background-position: center;
     }
   </style>
 </head>
@@ -63,8 +65,8 @@
     let bombs = [];
 
     // Set initial position for Muslim character
-    let muslimX = gameArea.offsetWidth / 2 - 15;
-    let muslimY = gameArea.offsetHeight / 2 - 15;
+    let muslimX = gameArea.offsetWidth / 2 - 20;
+    let muslimY = gameArea.offsetHeight / 2 - 30;
 
     // Update position
     function updateMuslimCharacterPosition() {
@@ -77,8 +79,8 @@
       for (let i = 0; i < 10; i++) {
         const bomb = document.createElement('div');
         bomb.classList.add('bomb');
-        bomb.style.left = Math.random() * (gameArea.offsetWidth - 20) + 'px';
-        bomb.style.top = Math.random() * (gameArea.offsetHeight - 20) + 'px';
+        bomb.style.left = Math.random() * (gameArea.offsetWidth - 30) + 'px';
+        bomb.style.top = Math.random() * (gameArea.offsetHeight - 30) + 'px';
         gameArea.appendChild(bomb);
         bombs.push(bomb);
       }
@@ -87,9 +89,9 @@
     // Move Muslim character with arrow keys
     document.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowUp' && muslimY > 0) muslimY -= 5;
-      if (event.key === 'ArrowDown' && muslimY < gameArea.offsetHeight - 30) muslimY += 5;
+      if (event.key === 'ArrowDown' && muslimY < gameArea.offsetHeight - 60) muslimY += 5;
       if (event.key === 'ArrowLeft' && muslimX > 0) muslimX -= 5;
-      if (event.key === 'ArrowRight' && muslimX < gameArea.offsetWidth - 30) muslimX += 5;
+      if (event.key === 'ArrowRight' && muslimX < gameArea.offsetWidth - 40) muslimX += 5;
 
       // Update the character's position
       updateMuslimCharacterPosition();
