@@ -34,7 +34,6 @@
       color: #008000;
     }
 
-    /* UI Elements */
     .ui-elements {
       position: absolute;
       top: 10px;
@@ -60,7 +59,6 @@
       background-color: #228b22;
     }
 
-    /* Health Bar */
     .health-bar {
       width: 100px;
       height: 10px;
@@ -75,7 +73,6 @@
       background: #32cd32;
     }
 
-    /* Mobile Button Controls */
     .button-container {
       position: absolute;
       bottom: 20px;
@@ -120,7 +117,6 @@
     </div>
   </div>
 
-  <!-- Mobile Controls -->
   <div class="button-container">
     <button class="control-btn" id="upBtn">↑</button>
     <button class="control-btn" id="leftBtn">←</button>
@@ -146,7 +142,7 @@
     let enemySpawnInterval;
 
     const grid = 20;
-    const player = { x: 300, y: 350, width: grid, height: grid * 2, dx: 0, dy: 0, speed: 3, sword: false, health: 100 };
+    const player = { x: 300, y: 350, width: grid, height: grid * 2, dx: 0, dy: 0, speed: 3, sword: true, health: 100 };
     const graves = [{ x: 250, y: 100 }];
     const enemies = [];
     let enemyHealth = 100;
@@ -165,7 +161,7 @@
       startBtn.style.display = 'none';
       retryBtn.style.display = 'none';
       gameLoop();
-      enemySpawnInterval = setInterval(spawnEnemy, 4000); // Spawn enemies every 4 seconds
+      enemySpawnInterval = setInterval(spawnEnemy, 4000);
     }
 
     function spawnEnemy() {
@@ -175,8 +171,14 @@
     }
 
     function drawPlayer() {
+      // Player (Barelvi) as a person: head (circle) and body (rectangle)
       ctx.fillStyle = '#008000'; // Green for Barelvi character
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+      ctx.beginPath();
+      ctx.arc(player.x + player.width / 2, player.y + 10, 10, 0, Math.PI * 2); // Head (circle)
+      ctx.fill();
+      ctx.fillRect(player.x, player.y + 20, player.width, player.height); // Body (rectangle)
+
+      // Sword
       ctx.beginPath();
       ctx.moveTo(player.x + player.width / 2, player.y + player.height);
       ctx.lineTo(player.x + player.width / 2, player.y + player.height + 30); // Sword below player
@@ -187,8 +189,14 @@
 
     function drawEnemies() {
       enemies.forEach(enemy => {
+        // Enemy (Wahhabi/Deobandi) as a person: head (circle) and body (rectangle)
         ctx.fillStyle = '#ff0000'; // Red for enemies
-        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        ctx.beginPath();
+        ctx.arc(enemy.x + enemy.width / 2, enemy.y + 10, 10, 0, Math.PI * 2); // Head (circle)
+        ctx.fill();
+        ctx.fillRect(enemy.x, enemy.y + 20, enemy.width, enemy.height); // Body (rectangle)
+
+        // Sword
         ctx.beginPath();
         ctx.moveTo(enemy.x + enemy.width / 2, enemy.y + enemy.height);
         ctx.lineTo(enemy.x + enemy.width / 2, enemy.y + enemy.height + 30); // Sword below enemy
@@ -274,7 +282,6 @@
     retryBtn.addEventListener('click', startGame);
     startBtn.addEventListener('click', startGame);
 
-    // Key Controls
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowUp') player.dy = -player.speed;
       if (e.key === 'ArrowDown') player.dy = player.speed;
@@ -287,13 +294,11 @@
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
     });
 
-    // Mobile controls
     document.getElementById('upBtn').addEventListener('click', () => { player.dy = -player.speed; });
     document.getElementById('downBtn').addEventListener('click', () => { player.dy = player.speed; });
     document.getElementById('leftBtn').addEventListener('click', () => { player.dx = -player.speed; });
     document.getElementById('rightBtn').addEventListener('click', () => { player.dx = player.speed; });
     
-    // Attack Button
     document.getElementById('attackBtn').addEventListener('click', () => {
       enemies.forEach(enemy => attackEnemy(enemy));
     });
