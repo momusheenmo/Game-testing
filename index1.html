@@ -1,39 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Grave Defender: Sunni Barelvi</title>
   <style>
     body {
-      background: #f0f0f0;
-      color: #333;
+      margin: 0;
       font-family: 'Arial', sans-serif;
       text-align: center;
-      margin: 0;
-      padding: 0;
+      background-color: #f0f0f0;
     }
-
     canvas {
+      border: 2px solid #333;
       background: #e0e0e0;
-      border: 2px solid #0a0a0a;
       display: block;
       margin: 0 auto;
     }
-
     #message {
       font-size: 24px;
       margin-top: 20px;
       color: #ff6347;
       font-weight: bold;
     }
-
     #score {
       font-size: 24px;
       margin-top: 10px;
       color: #008000;
     }
-
     .ui-elements {
       position: absolute;
       top: 10px;
@@ -44,7 +38,6 @@
       padding: 10px;
       border-radius: 5px;
     }
-
     .start-button, .retry-button {
       background-color: #32cd32;
       padding: 12px 24px;
@@ -54,11 +47,9 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
     .start-button:hover, .retry-button:hover {
       background-color: #228b22;
     }
-
     .health-bar {
       width: 100px;
       height: 10px;
@@ -67,12 +58,10 @@
       border-radius: 5px;
       overflow: hidden;
     }
-
     .health {
       height: 100%;
       background: #32cd32;
     }
-
     .button-container {
       position: absolute;
       bottom: 20px;
@@ -82,7 +71,6 @@
       justify-content: space-between;
       width: 220px;
     }
-
     .control-btn {
       font-size: 24px;
       padding: 12px;
@@ -93,7 +81,6 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
     .attack-btn {
       background-color: #ff6347;
     }
@@ -143,7 +130,6 @@
 
     const grid = 20;
     const player = { x: 300, y: 350, width: grid, height: grid * 2, dx: 0, dy: 0, speed: 3, sword: true, health: 100 };
-    const graves = [{ x: 250, y: 100 }];
     const enemies = [];
     let enemyHealth = 100;
 
@@ -266,7 +252,6 @@
       moveEnemies();
       detectCollisions();
 
-      drawGraves();
       drawPlayer();
       drawEnemies();
       
