@@ -62,6 +62,14 @@
       height: 100%;
       background: #32cd32;
     }
+    .grave-label {
+      position: absolute;
+      top: 15px;
+      left: 10px;
+      font-size: 16px;
+      color: #ff4500;
+      font-weight: bold;
+    }
     .button-container {
       position: absolute;
       bottom: 20px;
@@ -100,17 +108,11 @@
       <div id="playerHealth" class="health" style="width: 100%"></div>
     </div>
     <div class="health-bar">
-      <div id="enemyHealth" class="health" style="width: 100%"></div>
+      <div id="graveHealth" class="health" style="width: 100%"></div>
     </div>
   </div>
 
-  <div class="button-container">
-    <button class="control-btn" id="upBtn">↑</button>
-    <button class="control-btn" id="leftBtn">←</button>
-    <button class="control-btn" id="rightBtn">→</button>
-    <button class="control-btn" id="downBtn">↓</button>
-    <button class="control-btn attack-btn" id="attackBtn">Attack</button>
-  </div>
+  <div class="grave-label">Grave Health</div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -118,7 +120,7 @@
     const message = document.getElementById('message');
     const scoreDisplay = document.getElementById('score');
     const playerHealthBar = document.getElementById('playerHealth');
-    const enemyHealthBar = document.getElementById('enemyHealth');
+    const graveHealthBar = document.getElementById('graveHealth');
     const gameUI = document.getElementById('gameUI');
     const startBtn = document.getElementById('startBtn');
     const retryBtn = document.getElementById('retryBtn');
@@ -130,111 +132,104 @@
 
     const grid = 20;
     const player = { x: 300, y: 350, width: grid, height: grid * 2, dx: 0, dy: 0, speed: 3, sword: true, health: 100 };
+    const bullets = [];
     const enemies = [];
-    let enemyHealth = 100;
+    let graveHealth = 500;  // Grave has 5x the player's health
 
-    function startGame() {
-      gameStarted = true;
-      gameOver = false;
-      score = 0;
-      player.x = 300;
-      player.y = 350;
-      player.health = 100;
-      enemies.length = 0;
-      scoreDisplay.textContent = `Graves Protected: ${score}`;
-      playerHealthBar.style.width = '100%';
-      enemyHealthBar.style.width = '100%';
-      startBtn.style.display = 'none';
-      retryBtn.style.display = 'none';
-      gameLoop();
-      enemySpawnInterval = setInterval(spawnEnemy, 4000);
-    }
-
+    // Enemy: Wahhabi
     function spawnEnemy() {
       const x = canvas.width + grid;
       const y = Math.random() * (canvas.height / 2);
-      enemies.push({ x: x, y: y, width: grid, height: grid * 2, dx: -2, sword: true, health: 50 });
+      enemies.push({ x: x, y: y, width: grid, height: grid * 2, dx: -2, sword: true, health: 50, type: 'Wahhabi' });
     }
 
     function drawPlayer() {
-      // Player (Barelvi) as a person: head (circle) and body (rectangle)
       ctx.fillStyle = '#008000'; // Green for Barelvi character
       ctx.beginPath();
       ctx.arc(player.x + player.width / 2, player.y + 10, 10, 0, Math.PI * 2); // Head (circle)
       ctx.fill();
       ctx.fillRect(player.x, player.y + 20, player.width, player.height); // Body (rectangle)
-
-      // Sword
-      ctx.beginPath();
-      ctx.moveTo(player.x + player.width / 2, player.y + player.height);
-      ctx.lineTo(player.x + player.width / 2, player.y + player.height + 30); // Sword below player
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 4;
-      ctx.stroke();
     }
 
     function drawEnemies() {
       enemies.forEach(enemy => {
-        // Enemy (Wahhabi/Deobandi) as a person: head (circle) and body (rectangle)
-        ctx.fillStyle = '#ff0000'; // Red for enemies
+        ctx.fillStyle = '#ff0000'; // Red for enemies (Wahhabis)
         ctx.beginPath();
         ctx.arc(enemy.x + enemy.width / 2, enemy.y + 10, 10, 0, Math.PI * 2); // Head (circle)
         ctx.fill();
         ctx.fillRect(enemy.x, enemy.y + 20, enemy.width, enemy.height); // Body (rectangle)
 
-        // Sword
-        ctx.beginPath();
-        ctx.moveTo(enemy.x + enemy.width / 2, enemy.y + enemy.height);
-        ctx.lineTo(enemy.x + enemy.width / 2, enemy.y + enemy.height + 30); // Sword below enemy
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        // Enemy Label
+        ctx.fillStyle = '#000';
+        ctx.fillText(enemy.type, enemy.x, enemy.y - 10);
       });
-    }
-
-    function movePlayer() {
-      player.x += player.dx;
-      player.y += player.dy;
     }
 
     function moveEnemies() {
       enemies.forEach(enemy => {
         enemy.x += enemy.dx;
-        if (enemy.x <= player.x + player.width && !gameOver) {
-          attackEnemy(enemy);
+        if (enemy.x < player.x + player.width && !gameOver) {
+          attackGrave(enemy);
         }
       });
     }
 
-    function attackEnemy(enemy) {
-      if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x) {
-        enemy.health -= 10;
-        if (enemy.health <= 0) {
-          enemies.splice(enemies.indexOf(enemy), 1);
-          score++;
-          updateScore();
+    function attackGrave(enemy) {
+      if (enemy.x <= 100 && enemy.y <= 100) { // Enemy tries to shoot the grave
+        graveHealth -= 5;  // Each attack reduces grave health
+        graveHealthBar.style.width = `${(graveHealth / 500) * 100}%`;
+        if (graveHealth <= 0) {
+          gameOver = true;
+          showMessage("Game Over! The grave was destroyed!");
         }
-        enemyHealth = enemy.health;
-        enemyHealthBar.style.width = `${enemyHealth}%`;
       }
     }
 
-    function detectCollisions() {
-      enemies.forEach(enemy => {
-        if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x && enemy.y < player.y + player.height && enemy.y + enemy.height > player.y) {
-          player.health -= 10;
-          playerHealthBar.style.width = `${player.health}%`;
-          if (player.health <= 0) {
-            gameOver = true;
-            showMessage("Game Over! You couldn't protect the grave!");
-          }
+    function shootBullets() {
+      // Shoot bullets 3-4 times per second
+      setInterval(() => {
+        bullets.push({
+          x: player.x + player.width / 2,
+          y: player.y,
+          width: 5,
+          height: 10,
+          speed: 5
+        });
+      }, 250);
+    }
+
+    function drawBullets() {
+      bullets.forEach((bullet, index) => {
+        ctx.fillStyle = '#0000FF';
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        bullet.y -= bullet.speed;
+
+        // Remove bullets that are off-screen
+        if (bullet.y < 0) {
+          bullets.splice(index, 1);
         }
       });
     }
 
-    function showMessage(text) {
-      message.textContent = text;
-      setTimeout(() => { message.textContent = ''; }, 2000);
+    function detectCollisions() {
+      bullets.forEach((bullet, index) => {
+        enemies.forEach((enemy, enemyIndex) => {
+          if (
+            bullet.x < enemy.x + enemy.width &&
+            bullet.x + bullet.width > enemy.x &&
+            bullet.y < enemy.y + enemy.height &&
+            bullet.y + bullet.height > enemy.y
+          ) {
+            enemy.health -= 10;
+            if (enemy.health <= 0) {
+              enemies.splice(enemyIndex, 1);
+              score++;
+              updateScore();
+            }
+            bullets.splice(index, 1); // Remove bullet on collision
+          }
+        });
+      });
     }
 
     function updateScore() {
@@ -248,13 +243,12 @@
       }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      movePlayer();
       moveEnemies();
-      detectCollisions();
-
       drawPlayer();
       drawEnemies();
-      
+      drawBullets();
+      detectCollisions();
+
       requestAnimationFrame(gameLoop);
     }
 
@@ -267,26 +261,59 @@
     retryBtn.addEventListener('click', startGame);
     startBtn.addEventListener('click', startGame);
 
-    document.addEventListener('keydown', e => {
+    // Mobile/Touch Dragging Control
+    let isDragging = false;
+
+    canvas.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      const touch = e.touches[0];
+      player.x = touch.clientX - canvas.offsetLeft - player.width / 2;
+      player.y = touch.clientY - canvas.offsetTop - player.height / 2;
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (isDragging) {
+        const touch = e.touches[0];
+        player.x = touch.clientX - canvas.offsetLeft - player.width / 2;
+        player.y = touch.clientY - canvas.offsetTop - player.height / 2;
+      }
+    });
+
+    canvas.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+
+    // Regular key controls (optional for desktop)
+    document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') player.dy = -player.speed;
       if (e.key === 'ArrowDown') player.dy = player.speed;
       if (e.key === 'ArrowLeft') player.dx = -player.speed;
       if (e.key === 'ArrowRight') player.dx = player.speed;
     });
 
-    document.addEventListener('keyup', e => {
+    document.addEventListener('keyup', (e) => {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') player.dy = 0;
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
     });
 
-    document.getElementById('upBtn').addEventListener('click', () => { player.dy = -player.speed; });
-    document.getElementById('downBtn').addEventListener('click', () => { player.dy = player.speed; });
-    document.getElementById('leftBtn').addEventListener('click', () => { player.dx = -player.speed; });
-    document.getElementById('rightBtn').addEventListener('click', () => { player.dx = player.speed; });
-    
-    document.getElementById('attackBtn').addEventListener('click', () => {
-      enemies.forEach(enemy => attackEnemy(enemy));
-    });
+    function startGame() {
+      gameStarted = true;
+      gameOver = false;
+      score = 0;
+      player.x = 300;
+      player.y = 350;
+      player.health = 100;
+      graveHealth = 500;
+      enemies.length = 0;
+      scoreDisplay.textContent = `Graves Protected: ${score}`;
+      playerHealthBar.style.width = '100%';
+      graveHealthBar.style.width = '100%';
+      startBtn.style.display = 'none';
+      retryBtn.style.display = 'none';
+      gameLoop();
+      enemySpawnInterval = setInterval(spawnEnemy, 4000);
+      shootBullets();
+    }
 
   </script>
 </body>
