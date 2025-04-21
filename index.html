@@ -1,242 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jibran’s Samosa Snake Game</title>
-  <style>
-    body {
-      background: #111;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-family: sans-serif;
-      margin: 0;
-      color: white;
-    }
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
+import { Sparkles, Zap, Shield } from "lucide-react";
 
-    canvas {
-      background: #222;
-      border: 2px solid #0f0;
-      margin-top: 10px;
-      touch-action: none;
-    }
+const products = [
+  {
+    name: "NeuraLink-XR",
+    description: "A seamless mind-computer interface for enhanced productivity and telepathic control of your smart devices.",
+    blueprint: "/blueprints/neurolink.png",
+    icon: Sparkles,
+  },
+  {
+    name: "ChronoLens",
+    description: "Augmented reality glasses that overlay a futuristic HUD with real-time data, navigation, and quantum alerts.",
+    blueprint: "/blueprints/chronolens.png",
+    icon: Zap,
+  },
+  {
+    name: "Aegis Core",
+    description: "Personal AI bodyguard drone with atmospheric cloaking, biometric scanning, and encrypted comms.",
+    blueprint: "/blueprints/aegiscore.png",
+    icon: Shield,
+  },
+];
 
-    #message {
-      font-size: 24px;
-      color: yellow;
-      margin-top: 10px;
-      height: 30px;
-    }
+export default function FuturisticTech() {
+  return (
+    <div className="min-h-screen bg-black text-white font-sans">
+      <header className="px-8 py-6 border-b border-gray-800 flex justify-between items-center">
+        <h1 className="text-2xl font-bold tracking-tight">NovaTech</h1>
+        <nav className="space-x-6 text-gray-400 text-sm">
+          <a href="#" className="hover:text-white">Home</a>
+          <a href="#" className="hover:text-white">Products</a>
+          <a href="#" className="hover:text-white">Blueprints</a>
+          <a href="#" className="hover:text-white">About</a>
+          <a href="#" className="hover:text-white">Contact</a>
+        </nav>
+      </header>
 
-    #score {
-      font-size: 20px;
-      margin-top: 10px;
-    }
+      <main className="px-8 py-16">
+        <section className="text-center mb-16">
+          <motion.h2
+            className="text-5xl font-semibold mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+          >
+            Welcome to the Future of Innovation
+          </motion.h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            NovaTech pioneers advanced consumer technology with a sleek, minimalistic design. Explore the devices that are reshaping tomorrow.
+          </p>
+        </section>
 
-    #retry {
-      display: none;
-      margin-top: 15px;
-      padding: 10px 20px;
-      font-size: 18px;
-      background: #0f0;
-      color: #000;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+        <Tabs defaultValue="NeuraLink-XR" className="w-full">
+          <TabsList className="bg-gray-900 rounded-xl flex justify-center gap-4">
+            {products.map((product) => (
+              <TabsTrigger
+                key={product.name}
+                value={product.name}
+                className="text-white px-4 py-2 hover:bg-gray-700 rounded-md"
+              >
+                {product.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {products.map((product) => (
+            <TabsContent key={product.name} value={product.name}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center mt-10">
+                <motion.div
+                  className="p-8 bg-gray-900 rounded-2xl shadow-lg"
+                  initial={{ opacity: 0, x: -40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8 }}
+                >
+                  <product.icon className="h-10 w-10 text-cyan-400 mb-4" />
+                  <h3 className="text-2xl font-bold mb-2">{product.name}</h3>
+                  <p className="text-gray-400 mb-4">{product.description}</p>
+                  <Button variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-900">
+                    Learn More
+                  </Button>
+                </motion.div>
+                <motion.img
+                  src={product.blueprint}
+                  alt="Blueprint"
+                  className="w-full rounded-xl border border-gray-700"
+                  initial={{ opacity: 0, x: 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8 }}
+                />
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </main>
 
-    #flags {
-      display: none;
-      font-size: 36px;
-      margin-top: 10px;
-    }
-
-    .controls {
-      display: none;
-      margin-top: 20px;
-      flex-direction: column;
-      gap: 10px;
-      align-items: center;
-      user-select: none;
-    }
-
-    .row {
-      display: flex;
-      gap: 20px;
-    }
-
-    .btn {
-      background-color: #0f0;
-      border: none;
-      padding: 15px 20px;
-      font-size: 18px;
-      border-radius: 10px;
-      color: black;
-      font-weight: bold;
-      width: 60px;
-      text-align: center;
-    }
-
-    @media (max-width: 600px) {
-      .controls {
-        display: flex;
-      }
-    }
-  </style>
-</head>
-<body>
-  <h1>🐍 Jibran’s Samosa Snake Game</h1>
-  <div id="score"># of samosas caught: 0</div>
-  <canvas id="game" width="400" height="400"></canvas>
-  <div id="message"></div>
-  <div id="flags">🇮🇳 🇵🇰</div>
-  <button id="retry">Retry</button>
-
-  <div class="controls">
-    <div class="row">
-      <button class="btn" data-dir="up">⬆️</button>
+      <footer className="px-8 py-12 border-t border-gray-800 text-gray-500 text-sm text-center">
+        © 2025 NovaTech. All rights reserved.
+      </footer>
     </div>
-    <div class="row">
-      <button class="btn" data-dir="left">⬅️</button>
-      <button class="btn" data-dir="down">⬇️</button>
-      <button class="btn" data-dir="right">➡️</button>
-    </div>
-  </div>
-
-  <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    const message = document.getElementById('message');
-    const scoreDisplay = document.getElementById('score');
-    const retryBtn = document.getElementById('retry');
-    const flags = document.getElementById('flags');
-
-    const grid = 20;
-    let count = 0;
-    let speed = 5.3;
-    let playing = true;
-    let score = 0;
-
-    let snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
-    let apple = { x: 320, y: 320 };
-
-    function getRandomInt(min, max) {
-      return Math.floor(Math.random() * (max - min)) + min;
-    }
-
-    function resetGame() {
-      playing = false;
-      showMessage("💀 Jibran died,but india zindabad!");
-      flags.style.display = 'block';
-      retryBtn.style.display = 'inline-block';
-    }
-
-    function restartGame() {
-      snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
-      apple = { x: getRandomInt(0, 20) * grid, y: getRandomInt(0, 20) * grid };
-      score = 0;
-      updateScore();
-      flags.style.display = 'none';
-      retryBtn.style.display = 'none';
-      message.textContent = '';
-      playing = true;
-    }
-
-    function showMessage(text, duration = 2000) {
-      message.textContent = text;
-      if (duration > 0) {
-        setTimeout(() => {
-          if (playing) message.textContent = '';
-        }, duration);
-      }
-    }
-
-    function updateScore() {
-      scoreDisplay.textContent = `# of samosas caught: ${score}`;
-    }
-
-    function loop() {
-      requestAnimationFrame(loop);
-      if (!playing) return;
-
-      if (++count < speed) return;
-      count = 0;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      snake.x += snake.dx;
-      snake.y += snake.dy;
-
-      if (
-        snake.x < 0 || snake.x >= canvas.width ||
-        snake.y < 0 || snake.y >= canvas.height
-      ) {
-        resetGame();
-        return;
-      }
-
-      snake.cells.unshift({ x: snake.x, y: snake.y });
-      if (snake.cells.length > snake.maxCells) {
-        snake.cells.pop();
-      }
-
-      // Draw samosa (apple)
-      ctx.fillStyle = 'orange';
-      ctx.fillRect(apple.x, apple.y, grid - 1, grid - 1);
-
-      // Draw snake
-      ctx.fillStyle = 'lime';
-      snake.cells.forEach((cell, index) => {
-        ctx.fillRect(cell.x, cell.y, grid - 1, grid - 1);
-
-        if (cell.x === apple.x && cell.y === apple.y) {
-          snake.maxCells++;
-          apple.x = getRandomInt(0, 20) * grid;
-          apple.y = getRandomInt(0, 20) * grid;
-          score++;
-          updateScore();
-          showMessage("🥟 Good job Jibran!", 1000);
-        }
-
-        for (let i = index + 1; i < snake.cells.length; i++) {
-          if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
-            resetGame();
-            return;
-          }
-        }
-      });
-    }
-
-    function changeDirection(dir) {
-      if (dir === 'left' && snake.dx === 0) {
-        snake.dx = -grid; snake.dy = 0;
-      } else if (dir === 'up' && snake.dy === 0) {
-        snake.dy = -grid; snake.dx = 0;
-      } else if (dir === 'right' && snake.dx === 0) {
-        snake.dx = grid; snake.dy = 0;
-      } else if (dir === 'down' && snake.dy === 0) {
-        snake.dy = grid; snake.dx = 0;
-      }
-    }
-
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft') changeDirection('left');
-      else if (e.key === 'ArrowUp') changeDirection('up');
-      else if (e.key === 'ArrowRight') changeDirection('right');
-      else if (e.key === 'ArrowDown') changeDirection('down');
-    });
-
-    document.querySelectorAll('.btn').forEach(btn => {
-      const dir = btn.getAttribute('data-dir');
-      btn.addEventListener('touchstart', e => { e.preventDefault(); changeDirection(dir); });
-      btn.addEventListener('mousedown', e => { e.preventDefault(); changeDirection(dir); });
-    });
-
-    retryBtn.addEventListener('click', restartGame);
-
-    requestAnimationFrame(loop);
-  </script>
-</body>
-</html>
-<a href="graveDefender.html">Go to Grave Defender Game</a>
+  );
+}
